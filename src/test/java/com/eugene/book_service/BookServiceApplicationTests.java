@@ -10,6 +10,7 @@ class BookServiceApplicationTests {
 
     @Test
     void contextLoads() {
+        // Nothing to do for now
     }
 
 }
