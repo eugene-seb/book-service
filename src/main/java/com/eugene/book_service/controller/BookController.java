@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("book")
 public class BookController {
-    private static final String EXCEPTIONTXT = "Exception is : ";
+    private static final String EXCEPTION_IS = "Exception is : ";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BookService bookService;
 
@@ -67,7 +67,7 @@ public class BookController {
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler({UnsupportedOperationException.class})
     public void handleUnableToReallocate(Exception ex) {
-        logger.error(EXCEPTIONTXT, ex);
+        logger.error(EXCEPTION_IS, ex);
         // just return empty 501
     }
 
@@ -77,7 +77,7 @@ public class BookController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(IllegalArgumentException.class)
     public void handleNotFound(Exception ex) {
-        logger.error(EXCEPTIONTXT, ex);
+        logger.error(EXCEPTION_IS, ex);
         // return empty 404
     }
 
@@ -87,7 +87,7 @@ public class BookController {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler({DataIntegrityViolationException.class})
     public void handleAlreadyExists(Exception ex) {
-        logger.error(EXCEPTIONTXT, ex);
+        logger.error(EXCEPTION_IS, ex);
         // return empty 409
     }
 }
