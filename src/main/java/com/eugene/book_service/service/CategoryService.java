@@ -6,7 +6,10 @@ import com.eugene.book_service.repository.CategoryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CategoryService {
@@ -17,7 +20,8 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public ResponseEntity<Category> createCategory(CategoryDto categoryDto) {
+    public ResponseEntity<Category> createCategory(CategoryDto categoryDto) throws
+            URISyntaxException {
         if (categoryRepository
                 .findByName(categoryDto.name())
                 .isPresent()) { // Can create the same category twice
@@ -26,7 +30,11 @@ public class CategoryService {
                     .build();
         } else {
             Category category = new Category(categoryDto.name());
-            return ResponseEntity.ok(categoryRepository.save(category));
+            Category categoryCreated = categoryRepository.save(category);
+
+            return ResponseEntity
+                    .created(new URI("/category?idCategory=" + categoryCreated.getId()))
+                    .body(categoryCreated);
         }
     }
 
@@ -35,9 +43,9 @@ public class CategoryService {
         return ResponseEntity.ok(categories);
     }
 
-    public ResponseEntity<Category> getCategoryByName(String categoryName) {
+    public ResponseEntity<Category> getCategoryById(Long idCategory) {
         Category category = categoryRepository
-                .findByName(categoryName)
+                .findById(idCategory)
                 .orElse(null);
 
         if (category == null) {
@@ -47,5 +55,28 @@ public class CategoryService {
         } else {
             return ResponseEntity.ok(category);
         }
+    }
+
+    public ResponseEntity<Category> updateCategory(Long idCategory, CategoryDto categoryDto) {
+        Optional<Category> existingCategoryOpt = categoryRepository.findById(idCategory);
+
+        if (existingCategoryOpt.isEmpty()) {
+            return ResponseEntity
+                    .notFound()
+                    .build();
+        }
+
+        Category categoryOld = existingCategoryOpt.get();
+        categoryOld.setName(categoryDto.name());
+        Category categoryUpdated = categoryRepository.save(categoryOld);
+
+        return ResponseEntity.ok(categoryUpdated);
+    }
+
+    public ResponseEntity<Category> deleteCategory(Long idCategory) {
+        categoryRepository.deleteById(idCategory);
+        return ResponseEntity
+                .ok()
+                .build();
     }
 }
