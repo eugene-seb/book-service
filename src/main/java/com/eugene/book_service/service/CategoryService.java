@@ -3,6 +3,7 @@ package com.eugene.book_service.service;
 import com.eugene.book_service.dto.CategoryDto;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.CategoryRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class CategoryService {
                 .findByName(categoryDto.name())
                 .isPresent()) { // Can create the same category twice
             return ResponseEntity
-                    .badRequest()
+                    .status(HttpStatus.CONFLICT)
                     .build();
         } else {
             Category category = new Category(categoryDto.name());

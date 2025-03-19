@@ -72,6 +72,12 @@ class BookMockMcvTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/book?isbn=isbn11"))
                 .andExpect(jsonPath("$.isbn").value("isbn11"));
+
+        mockMvc
+                .perform(post("/book/create_book")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(bookDto)))
+                .andExpect(status().isConflict());
     }
 
     @Test
