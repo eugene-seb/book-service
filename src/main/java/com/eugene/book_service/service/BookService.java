@@ -7,6 +7,7 @@ import com.eugene.book_service.repository.BookRepository;
 import com.eugene.book_service.repository.CategoryRepository;
 import com.eugene.book_service.repository.specification.BookSpecification;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,12 @@ public class BookService {
                     .build();
         }
 
+        if (bookRepository.existsById(bookDto.isbn())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .build();
+        }
+
         Book book = new Book(bookDto.isbn(), bookDto.title(), bookDto.description(),
                 bookDto.author(), bookDto.url());
         book.setCategories(categories);
@@ -58,8 +65,8 @@ public class BookService {
     }
 
     public ResponseEntity<List<Book>> searchBooksByKey(BookDto bookDto) {
-        Specification<Book> bookSpecification = BookSpecification.filterBy(bookDto);
-        List<Book> books = bookRepository.findAll(bookSpecification);
+        Specification<Book> bookSpec = BookSpecification.filterBy(bookDto);
+        List<Book> books = bookRepository.findAll(bookSpec);
         return ResponseEntity.ok(books);
     }
 

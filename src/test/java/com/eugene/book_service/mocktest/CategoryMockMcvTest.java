@@ -52,6 +52,12 @@ class CategoryMockMcvTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/category?idCategory=1"))
                 .andExpect(jsonPath("$.name").value("art"));
+
+        mockMvc
+                .perform(post("/category/create_category")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(categoryDto)))
+                .andExpect(status().isConflict());
     }
 
     @Test
