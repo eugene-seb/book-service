@@ -6,6 +6,7 @@ import com.eugene.book_service.repository.CategoryRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,6 +22,7 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public ResponseEntity<Category> createCategory(CategoryDto categoryDto) throws
             URISyntaxException {
         if (categoryRepository
@@ -39,11 +41,13 @@ public class CategoryService {
         }
     }
 
+    @Transactional
     public ResponseEntity<List<Category>> getAllCategories() {
         List<Category> categories = categoryRepository.findAll();
         return ResponseEntity.ok(categories);
     }
 
+    @Transactional
     public ResponseEntity<Category> getCategoryById(Long idCategory) {
         Category category = categoryRepository
                 .findById(idCategory)
@@ -58,6 +62,7 @@ public class CategoryService {
         }
     }
 
+    @Transactional
     public ResponseEntity<Category> updateCategory(Long idCategory, CategoryDto categoryDto) {
         Optional<Category> existingCategoryOpt = categoryRepository.findById(idCategory);
 
@@ -74,6 +79,7 @@ public class CategoryService {
         return ResponseEntity.ok(categoryUpdated);
     }
 
+    @Transactional
     public ResponseEntity<Category> deleteCategory(Long idCategory) {
         categoryRepository.deleteById(idCategory);
         return ResponseEntity

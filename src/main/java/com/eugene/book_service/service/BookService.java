@@ -1,6 +1,7 @@
 package com.eugene.book_service.service;
 
 import com.eugene.book_service.dto.BookDto;
+import com.eugene.book_service.kafka.BookEventProducer;
 import com.eugene.book_service.model.Book;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.BookRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,15 +23,19 @@ import java.util.Set;
 @Service
 public class BookService {
 
+    private final BookEventProducer bookEventProducer;
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
 
     public BookService(
-            BookRepository bookRepository, CategoryRepository categoryRepository) {
+            BookEventProducer bookEventProducer, BookRepository bookRepository,
+            CategoryRepository categoryRepository) {
+        this.bookEventProducer = bookEventProducer;
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public ResponseEntity<Book> createBook(BookDto bookDto) throws URISyntaxException {
         Set<Category> categories = new HashSet<>(
                 categoryRepository.findAllById(bookDto.categoriesIds()));
@@ -59,17 +65,20 @@ public class BookService {
                 .body(bookCreated);
     }
 
+    @Transactional
     public ResponseEntity<List<Book>> getAllBook() {
         List<Book> books = bookRepository.findAll();
         return ResponseEntity.ok(books);
     }
 
+    @Transactional
     public ResponseEntity<List<Book>> searchBooksByKey(BookDto bookDto) {
         Specification<Book> bookSpec = BookSpecification.filterBy(bookDto);
         List<Book> books = bookRepository.findAll(bookSpec);
         return ResponseEntity.ok(books);
     }
 
+    @Transactional
     public ResponseEntity<Book> getBookByIsbn(String isbn) {
         Book book = bookRepository
                 .findById(isbn)
@@ -84,12 +93,14 @@ public class BookService {
         }
     }
 
+    @Transactional
     public ResponseEntity<Boolean> doesBookExist(String isbn) {
         boolean exist = bookRepository.existsById(isbn);
 
         return ResponseEntity.ok(exist);
     }
 
+    @Transactional
     public ResponseEntity<Book> updateBook(String isbn, BookDto bookDto) {
         Optional<Book> existingBookOpt = bookRepository.findById(isbn);
 
@@ -120,8 +131,15 @@ public class BookService {
         return ResponseEntity.ok(bookUpdated);
     }
 
-    public ResponseEntity<Book> deleteBook(String isbn) {
-        bookRepository.deleteById(isbn);
+    @Transactional
+    public ResponseEntity<Void> deleteBook(String isbn) {
+        bookRepository
+                .findById(isbn)
+                .ifPresent(book -> {
+                    bookRepository.deleteById(isbn);
+                    bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
+                });
+
         return ResponseEntity
                 .ok()
                 .build();

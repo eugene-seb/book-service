@@ -56,7 +56,7 @@ public class BookController {
     }
 
     @DeleteMapping("delete/{isbn}")
-    public ResponseEntity<Book> deleteBook(@PathVariable String isbn) {
+    public ResponseEntity<Void> deleteBook(@PathVariable String isbn) {
         return bookService.deleteBook(isbn);
     }
 
