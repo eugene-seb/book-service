@@ -19,7 +19,8 @@ public class BookEventProducer {
     }
 
     public void sendBookDeletedEvent(Set<Long> reviewsIds) throws JsonProcessingException {
-        String json = objectMapper.writeValueAsString(new BookDtoEvent("BOOK_DELETED", reviewsIds));
+        String json = objectMapper.writeValueAsString(
+                new BookDtoEvent(KafkaEventType.BOOK_DELETED, reviewsIds));
         kafkaTemplate.send("book.events", json);
     }
 }
