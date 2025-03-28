@@ -7,6 +7,7 @@ import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.BookRepository;
 import com.eugene.book_service.repository.CategoryRepository;
 import com.eugene.book_service.repository.specification.BookSpecification;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -137,7 +138,11 @@ public class BookService {
                 .findById(isbn)
                 .ifPresent(book -> {
                     bookRepository.deleteById(isbn);
-                    bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
+                    try {
+                        bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e.getMessage(), e.getCause());
+                    }
                 });
 
         return ResponseEntity

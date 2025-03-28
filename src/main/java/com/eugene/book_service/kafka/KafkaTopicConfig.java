@@ -1,4 +1,4 @@
-package com.eugene.book_service.config;
+package com.eugene.book_service.kafka;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;

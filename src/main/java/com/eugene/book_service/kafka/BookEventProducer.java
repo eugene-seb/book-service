@@ -1,6 +1,8 @@
 package com.eugene.book_service.kafka;
 
-import com.eugene.book_service.dto.event.BookEvent;
+import com.eugene.book_service.dto.event.BookDtoEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -9,13 +11,15 @@ import java.util.Set;
 @Service
 public class BookEventProducer {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public BookEventProducer(KafkaTemplate<String, Object> kafkaTemplate) {
+    public BookEventProducer(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendBookDeletedEvent(Set<Long> reviewsIds) {
-        kafkaTemplate.send("book.events", new BookEvent("BOOK_DELETED", reviewsIds));
+    public void sendBookDeletedEvent(Set<Long> reviewsIds) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(new BookDtoEvent("BOOK_DELETED", reviewsIds));
+        kafkaTemplate.send("book.events", json);
     }
 }
