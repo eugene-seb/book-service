@@ -1,4 +1,4 @@
-package com.eugene.book_service.mocktest;
+package com.eugene.book_service.service;
 
 import com.eugene.book_service.dto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,28 +7,38 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ImportAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class CategoryMockMcvTest {
+class CategoryServiceMockTest {
 
     private final CategoryDto categoryDto;
     private final CategoryDto categoryDtoNew;
 
+    /// I don't want the context to load kafka for this test, so I'm mocking his initialization
+    /// It will be used in each function of service that call Kafka producer/consumer
+    @MockitoBean
+    private KafkaTemplate<String, String> kafkaTemplate;
+    
     @Autowired
     private MockMvc mockMvc;
 
-    public CategoryMockMcvTest() {
+    public CategoryServiceMockTest() {
         this.categoryDto = new CategoryDto("art");
         this.categoryDtoNew = new CategoryDto("music");
     }

@@ -1,4 +1,4 @@
-package com.eugene.book_service.mocktest;
+package com.eugene.book_service.service;
 
 import com.eugene.book_service.dto.BookDto;
 import com.eugene.book_service.dto.CategoryDto;
@@ -8,10 +8,14 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
@@ -22,20 +26,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ImportAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class BookMockMcvTest {
+class BookServiceMockTest {
 
     private final CategoryDto categoryDto;
     private final BookDto bookDto;
     private final BookDto bookDtoNew;
     private final BookDto bookDtoFilter;
 
+
+    /// I don't want the context to load kafka for this test, so I'm mocking his initialization
+    /// It will be used in each function of service that call Kafka producer/consumer
+    @MockitoBean
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     @Autowired
     private MockMvc mockMvc;
 
-    public BookMockMcvTest() {
+    public BookServiceMockTest() {
         this.categoryDto = new CategoryDto("art");
         this.bookDto = new BookDto("isbn11", "title", "String description", "String author",
                 "String url", new HashSet<>(List.of(1L)));
@@ -83,7 +94,6 @@ class BookMockMcvTest {
     @Test
     @Order(2)
     void getAllBook() throws Exception {
-
 
         mockMvc
                 .perform(get("/book/all_books"))
