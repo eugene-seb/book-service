@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -40,6 +41,7 @@ public class Book {
         this.description = description;
         this.author = author;
         this.url = url;
+        this.reviewsIds = new HashSet<>();
     }
 
 }
