@@ -1,7 +1,9 @@
-package com.eugene.book_service.kafka;
+package com.eugene.book_service.unit.kafka;
 
 import com.eugene.book_service.dto.event.ReviewDtoEvent;
 import com.eugene.book_service.dto.event.UserDtoEvent;
+import com.eugene.book_service.kafka.BookEventConsumer;
+import com.eugene.book_service.kafka.KafkaEventType;
 import com.eugene.book_service.model.Book;
 import com.eugene.book_service.repository.BookRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;

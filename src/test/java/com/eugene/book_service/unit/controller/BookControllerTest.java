@@ -1,5 +1,6 @@
-package com.eugene.book_service.controller;
+package com.eugene.book_service.unit.controller;
 
+import com.eugene.book_service.controller.BookController;
 import com.eugene.book_service.dto.BookDto;
 import com.eugene.book_service.model.Book;
 import com.eugene.book_service.service.BookService;
