@@ -1,7 +1,7 @@
 package com.eugene.book_service.controller;
 
+import com.eugene.book_service.dto.BookDetailsDto;
 import com.eugene.book_service.dto.BookDto;
-import com.eugene.book_service.model.Book;
 import com.eugene.book_service.service.BookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,34 +25,35 @@ public class BookController {
     }
 
     @PostMapping("create_book")
-    public ResponseEntity<Book> createBook(@RequestBody BookDto bookDto) throws URISyntaxException {
+    public ResponseEntity<BookDetailsDto> createBook(@RequestBody BookDto bookDto) throws
+            URISyntaxException {
         return bookService.createBook(bookDto);
     }
 
     @GetMapping("all_books")
-    public ResponseEntity<List<Book>> getAllBook() {
+    public ResponseEntity<List<BookDetailsDto>> getAllBook() {
         return bookService.getAllBook();
     }
 
     @GetMapping
-    public ResponseEntity<Book> getBookByIsbn(@RequestParam String isbn) {
+    public ResponseEntity<BookDetailsDto> getBookByIsbn(@RequestParam String isbn) {
         return bookService.getBookByIsbn(isbn);
     }
 
     @GetMapping("search")
-    public ResponseEntity<List<Book>> searchBookByKey(@RequestBody BookDto bookDto) {
+    public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@RequestBody BookDto bookDto) {
         return bookService.searchBooksByKey(bookDto);
     }
 
     @GetMapping("exists/{isbn}")
     public ResponseEntity<Boolean> doesBookExist(@PathVariable String isbn) {
-        return bookService.doesBookExist(isbn);
+        return bookService.doesBookExists(isbn);
     }
 
     @PutMapping("/update/{isbn}")
-    public ResponseEntity<Book> updateBook(
+    public ResponseEntity<BookDetailsDto> updateBook(
             @PathVariable String isbn, @RequestBody BookDto bookDto) {
-        return bookService.updateBook(isbn, bookDto);
+        return bookService.updateBook(bookDto);
     }
 
     @DeleteMapping("delete/{isbn}")

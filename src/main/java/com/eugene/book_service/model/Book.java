@@ -1,5 +1,6 @@
 package com.eugene.book_service.model;
 
+import com.eugene.book_service.dto.BookDetailsDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +42,15 @@ public class Book {
         this.description = description;
         this.author = author;
         this.url = url;
+        this.categories = new HashSet<>();
         this.reviewsIds = new HashSet<>();
     }
 
+    public BookDetailsDto toBookDetailsDto() {
+        Set<String> categoriesName = new HashSet<>();
+        this.categories.forEach(category -> categoriesName.add(category.getName()));
+
+        return new BookDetailsDto(this.isbn, this.title, this.description, this.author, this.url,
+                categoriesName, this.reviewsIds);
+    }
 }

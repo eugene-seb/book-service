@@ -28,7 +28,7 @@ public class BookSpecification {
             if (bookDto.author() != null) predicates.add(
                     criteriaBuilder.like(root.get("author"), "%" + bookDto.author() + "%"));
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
 }

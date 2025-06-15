@@ -1,8 +1,8 @@
 package com.eugene.book_service.unit.controller;
 
 import com.eugene.book_service.controller.BookController;
+import com.eugene.book_service.dto.BookDetailsDto;
 import com.eugene.book_service.dto.BookDto;
-import com.eugene.book_service.model.Book;
 import com.eugene.book_service.service.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,9 +35,9 @@ class BookControllerTest {
     @MockitoBean
     BookService bookService;
 
-    Book book;
     BookDto bookDto;
-    List<Book> bookList;
+    BookDetailsDto bookDetailsDto;
+    List<BookDetailsDto> bookList;
 
     static String asJsonString(final Object obj) {
         try {
@@ -51,36 +50,37 @@ class BookControllerTest {
 
     @BeforeEach
     void initVariables() {
-        book = new Book("isbn11", "String title", "String description", "String author",
-                "String url");
-
         bookDto = new BookDto("isbn11", "new title", "String description", "String author",
                 "String url", new HashSet<>(List.of(1L, 2L, 3L)));
 
-        bookList = List.of(new Book("isbn11", "String title", "String description", "String author",
-                "String url"));
+        bookDetailsDto = new BookDetailsDto("isbn11", "new title", "String description",
+                "String author", "String url", new HashSet<>(List.of("art", "music", "science")),
+                new HashSet<>(List.of(1L, 2L, 3L)));
+
+        bookList = List.of(
+                new BookDetailsDto("isbn11", "String title", "String description", "String author",
+                        "String url", new HashSet<>(), new HashSet<>()));
     }
 
     @Test
     void createBook() throws Exception {
         given(bookService.createBook(bookDto)).willReturn(ResponseEntity
-                .created(new URI("/book?isbn=" + book.getIsbn()))
-                .body(book));
+                .created(new URI("/book?isbn=" + bookDetailsDto.isbn()))
+                .body(bookDetailsDto));
 
         mockMvc
                 .perform(post("/book/create_book")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(bookDto)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/book?isbn=isbn11"))
-                .andExpect(jsonPath("$.isbn").value("isbn11"));
+                .andExpect(header().string("Location", "/book?isbn=" + bookDetailsDto.isbn()))
+                .andExpect(jsonPath("$.isbn").value(bookDetailsDto.isbn()));
 
         verify(bookService).createBook(bookDto);
     }
 
     @Test
     void getAllBook() throws Exception {
-
 
         given(bookService.getAllBook()).willReturn(ResponseEntity.ok(bookList));
 
@@ -94,53 +94,53 @@ class BookControllerTest {
 
     @Test
     void getBookByIsbn() throws Exception {
-        given(bookService.getBookByIsbn("isbn11")).willReturn(ResponseEntity.ok(book));
+        given(bookService.getBookByIsbn("isbn11")).willReturn(ResponseEntity.ok(bookDetailsDto));
 
         mockMvc
-                .perform(get("/book?isbn=isbn11"))
+                .perform(get("/book?isbn=" + bookDto.isbn()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isbn").value("isbn11"));
+                .andExpect(jsonPath("$.isbn").value(bookDetailsDto.isbn()));
 
-        verify(bookService).getBookByIsbn("isbn11");
+        verify(bookService).getBookByIsbn(bookDto.isbn());
     }
 
     @Test
     void doesBookExist() throws Exception {
-        given(bookService.doesBookExist(book.getIsbn())).willReturn(ResponseEntity.ok(true));
+        given(bookService.doesBookExists(bookDto.isbn())).willReturn(ResponseEntity.ok(true));
 
         mockMvc
-                .perform(get("/book/exists/" + book.getIsbn()))
+                .perform(get("/book/exists/" + bookDto.isbn()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(true));
 
-        verify(bookService).doesBookExist(book.getIsbn());
+        verify(bookService).doesBookExists(bookDto.isbn());
     }
 
     @Test
     void updateBook() throws Exception {
-        given(bookService.updateBook(eq(book.getIsbn()), any(BookDto.class))).willReturn(
-                ResponseEntity.ok(book));
+        given(bookService.updateBook(any(BookDto.class))).willReturn(
+                ResponseEntity.ok(bookDetailsDto));
 
         mockMvc
-                .perform(put("/book/update/{isbn}", book.getIsbn())
+                .perform(put("/book/update/{isbn}", bookDto.isbn())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(bookDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isbn").value("isbn11"));
+                .andExpect(jsonPath("$.isbn").value(bookDetailsDto.isbn()));
 
-        verify(bookService).updateBook(eq(book.getIsbn()), any(BookDto.class));
+        verify(bookService).updateBook(any(BookDto.class));
     }
 
     @Test
     void deleteBook() throws Exception {
-        given(bookService.deleteBook(book.getIsbn())).willReturn(ResponseEntity
+        given(bookService.deleteBook(bookDto.isbn())).willReturn(ResponseEntity
                 .ok()
                 .build());
 
         mockMvc
-                .perform(delete(new URI("/book/delete/" + book.getIsbn())))
+                .perform(delete(new URI("/book/delete/" + bookDto.isbn())))
                 .andExpect(status().isOk());
 
-        verify(bookService).deleteBook(book.getIsbn());
+        verify(bookService).deleteBook(bookDto.isbn());
     }
 }
