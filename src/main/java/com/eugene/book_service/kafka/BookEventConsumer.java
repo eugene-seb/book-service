@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public class BookEventConsumer {
     @Transactional
     public void handleUserDeletedEvent(String json) throws JsonProcessingException {
         UserDtoEvent userDtoEvent = objectMapper.readValue(json, UserDtoEvent.class);
-        if (userDtoEvent.getEventType() == KafkaEventType.USER_DELETED) {
+        if (Objects.equals(userDtoEvent.getEventType(), KafkaEventType.USER_DELETED)) {
             deleteBookReviewsByIds(userDtoEvent.getReviewsIds());
         }
     }
@@ -42,7 +43,7 @@ public class BookEventConsumer {
     @Transactional
     public void handleReviewsCreatedEvent(String json) throws JsonProcessingException {
         ReviewDtoEvent reviewDtoEvent = objectMapper.readValue(json, ReviewDtoEvent.class);
-        if (reviewDtoEvent.getEventType() == KafkaEventType.REVIEWS_CREATED) {
+        if (Objects.equals(reviewDtoEvent.getEventType(), KafkaEventType.REVIEWS_CREATED)) {
             bookRepository
                     .findById(reviewDtoEvent.getIsbn())
                     .ifPresent(book -> {
@@ -59,7 +60,7 @@ public class BookEventConsumer {
     @Transactional
     public void handleReviewsDeletedEvent(String json) throws JsonProcessingException {
         ReviewDtoEvent reviewDtoEvent = objectMapper.readValue(json, ReviewDtoEvent.class);
-        if (reviewDtoEvent.getEventType() == KafkaEventType.REVIEWS_DELETED) {
+        if (Objects.equals(reviewDtoEvent.getEventType(), KafkaEventType.REVIEWS_DELETED)) {
             deleteBookReviewsByIds(reviewDtoEvent.getReviewsIds());
         }
     }
