@@ -1,17 +1,14 @@
 package com.eugene.book_service.service;
 
 import com.eugene.book_service.dto.CategoryDto;
+import com.eugene.book_service.exception.DuplicatedException;
+import com.eugene.book_service.exception.NotFoundException;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.CategoryRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CategoryService {
@@ -22,68 +19,50 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    private static String getCategoryNotFoundMessage(long idCategory) {
+        return "Category '" + idCategory + "' not found.";
+    }
+
     @Transactional
-    public ResponseEntity<Category> createCategory(CategoryDto categoryDto) throws
-            URISyntaxException {
-        if (categoryRepository
+    public Category createCategory(CategoryDto categoryDto) {
+        boolean exists = categoryRepository
                 .findByName(categoryDto.name())
-                .isPresent()) { // Can create the same category twice
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .build();
+                .isPresent();
+        if (exists) {
+            throw new DuplicatedException(
+                    "Category '" + categoryDto.name() + "' " + "already exists.", null);
         } else {
             Category category = new Category(categoryDto.name());
-            Category categoryCreated = categoryRepository.save(category);
-
-            return ResponseEntity
-                    .created(new URI("/category?idCategory=" + categoryCreated.getId()))
-                    .body(categoryCreated);
+            return categoryRepository.save(category);
         }
     }
 
     @Transactional
-    public ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return ResponseEntity.ok(categories);
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
     }
 
     @Transactional
-    public ResponseEntity<Category> getCategoryById(Long idCategory) {
-        Category category = categoryRepository
+    public Category getCategoryById(Long idCategory) {
+
+        return categoryRepository
                 .findById(idCategory)
-                .orElse(null);
-
-        if (category == null) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        } else {
-            return ResponseEntity.ok(category);
-        }
+                .orElseThrow(
+                        () -> new NotFoundException(getCategoryNotFoundMessage(idCategory), null));
     }
 
     @Transactional
-    public ResponseEntity<Category> updateCategory(Long idCategory, CategoryDto categoryDto) {
-        Optional<Category> existingCategoryOpt = categoryRepository.findById(idCategory);
-
-        if (existingCategoryOpt.isEmpty()) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        }
-
-        Category categoryOld = existingCategoryOpt.get();
+    public Category updateCategory(Long idCategory, CategoryDto categoryDto) {
+        Category categoryOld = categoryRepository
+                .findById(idCategory)
+                .orElseThrow(
+                        () -> new NotFoundException(getCategoryNotFoundMessage(idCategory), null));
         categoryOld.setName(categoryDto.name());
-        Category categoryUpdated = categoryRepository.save(categoryOld);
-
-        return ResponseEntity.ok(categoryUpdated);
+        return categoryRepository.save(categoryOld);
     }
 
     @Transactional
-    public ResponseEntity<Category> deleteCategory(Long idCategory) {
+    public void deleteCategory(Long idCategory) {
         categoryRepository.deleteById(idCategory);
-        return ResponseEntity
-                .ok()
-                .build();
     }
 }

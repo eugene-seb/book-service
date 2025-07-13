@@ -2,21 +2,18 @@ package com.eugene.book_service.service;
 
 import com.eugene.book_service.dto.BookDetailsDto;
 import com.eugene.book_service.dto.BookDto;
+import com.eugene.book_service.exception.DuplicatedException;
+import com.eugene.book_service.exception.NotFoundException;
 import com.eugene.book_service.kafka.BookEventProducer;
 import com.eugene.book_service.model.Book;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.BookRepository;
 import com.eugene.book_service.repository.CategoryRepository;
 import com.eugene.book_service.repository.specification.BookSpecification;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,96 +33,78 @@ public class BookService {
         this.categoryRepository = categoryRepository;
     }
 
+    private static String getBookNotFoundMessage(String isbn) {
+        return "Book with ISBN '" + isbn + "' not found.";
+    }
+
     @Transactional
-    public ResponseEntity<BookDetailsDto> createBook(BookDto bookDto) throws URISyntaxException {
+    public BookDetailsDto createBook(BookDto bookDto) {
         Set<Category> categories = new HashSet<>(
                 categoryRepository.findAllById(bookDto.categoriesIds()));
 
         if (categories.size() != bookDto
                 .categoriesIds()
-                .size()) { // At least one category doesn't exist
-            return ResponseEntity
-                    .badRequest()
-                    .build();
+                .size()) {
+            throw new IllegalArgumentException("At least one category doesn't exist");
         } else if (bookRepository.existsById(bookDto.isbn())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .build();
+            throw new DuplicatedException(
+                    "Book with ISBN '" + bookDto.isbn() + "' " + "already exists.", null);
         } else {
             Book book = bookDto.toBook();
             book.setCategories(categories);
 
-            BookDetailsDto bookCreated = bookRepository
+            return bookRepository
                     .save(book)
                     .toBookDetailsDto();
-
-            return ResponseEntity
-                    .created(new URI("/book?isbn=" + bookCreated.isbn()))
-                    .body(bookCreated);
         }
     }
 
     @Transactional
-    public ResponseEntity<List<BookDetailsDto>> getAllBook() {
-        List<BookDetailsDto> books = bookRepository
+    public List<BookDetailsDto> getAllBook() {
+        return bookRepository
                 .findAll()
                 .stream()
                 .map(Book::toBookDetailsDto)
                 .toList();
-        return ResponseEntity.ok(books);
     }
 
     @Transactional
-    public ResponseEntity<List<BookDetailsDto>> searchBooksByKey(BookDto bookDto) {
+    public List<BookDetailsDto> searchBooksByKey(BookDto bookDto) {
         Specification<Book> bookSpec = BookSpecification.filterBy(bookDto);
-        List<BookDetailsDto> books = bookRepository
+        return bookRepository
                 .findAll(bookSpec)
                 .stream()
                 .map(Book::toBookDetailsDto)
                 .toList();
-        return ResponseEntity.ok(books);
     }
 
     @Transactional
-    public ResponseEntity<BookDetailsDto> getBookByIsbn(String isbn) {
-        Book book = bookRepository
+    public BookDetailsDto getBookByIsbn(String isbn) {
+        return bookRepository
                 .findById(isbn)
-                .orElse(null);
-
-        if (book == null) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        } else {
-            return ResponseEntity.ok(book.toBookDetailsDto());
-        }
+                .map(Book::toBookDetailsDto)
+                .orElseThrow(() -> new NotFoundException(getBookNotFoundMessage(isbn), null));
     }
 
     @Transactional
-    public ResponseEntity<Boolean> doesBookExists(String isbn) {
-        boolean exist = bookRepository.existsById(isbn);
-
-        return ResponseEntity.ok(exist);
+    public Boolean doesBookExists(String isbn) {
+        return bookRepository.existsById(isbn);
     }
 
     @Transactional
-    public ResponseEntity<BookDetailsDto> updateBook(BookDto bookDto) {
+    public BookDetailsDto updateBook(BookDto bookDto) {
+
         Book book = bookRepository
                 .findById(bookDto.isbn())
-                .orElse(null);
+                .orElseThrow(
+                        () -> new NotFoundException(getBookNotFoundMessage(bookDto.isbn()), null));
         Set<Category> categories = new HashSet<>(
                 categoryRepository.findAllById(bookDto.categoriesIds()));
 
-        if (book == null) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        } else if (categories.size() != bookDto
+        if (categories.size() != bookDto
                 .categoriesIds()
-                .size()) { // Some categories don't exist
-            return ResponseEntity
-                    .badRequest()
-                    .build();
+                .size()) {
+            throw new IllegalArgumentException("At least one category doesn't exist");
         } else {
             book.setTitle(bookDto.title());
             book.setDescription(bookDto.description());
@@ -133,28 +112,19 @@ public class BookService {
             book.setUrl(bookDto.url());
             book.setCategories(categories);
 
-            BookDetailsDto bookUpdated = bookRepository
+            return bookRepository
                     .save(book)
                     .toBookDetailsDto();
-            return ResponseEntity.ok(bookUpdated);
         }
     }
 
     @Transactional
-    public ResponseEntity<Void> deleteBook(String isbn) {
+    public void deleteBook(String isbn) {
         bookRepository
                 .findById(isbn)
                 .ifPresent(book -> {
                     bookRepository.deleteById(isbn);
-                    try {
-                        bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e.getMessage(), e.getCause());
-                    }
+                    bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
                 });
-
-        return ResponseEntity
-                .ok()
-                .build();
     }
 }

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +20,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,9 +64,7 @@ class BookControllerTest {
 
     @Test
     void createBook() throws Exception {
-        given(bookService.createBook(bookDto)).willReturn(ResponseEntity
-                .created(new URI("/book?isbn=" + bookDetailsDto.isbn()))
-                .body(bookDetailsDto));
+        given(bookService.createBook(bookDto)).willReturn(bookDetailsDto);
 
         mockMvc
                 .perform(post("/book/create_book")
@@ -82,7 +80,7 @@ class BookControllerTest {
     @Test
     void getAllBook() throws Exception {
 
-        given(bookService.getAllBook()).willReturn(ResponseEntity.ok(bookList));
+        given(bookService.getAllBook()).willReturn(bookList);
 
         mockMvc
                 .perform(get("/book/all_books"))
@@ -94,7 +92,7 @@ class BookControllerTest {
 
     @Test
     void getBookByIsbn() throws Exception {
-        given(bookService.getBookByIsbn("isbn11")).willReturn(ResponseEntity.ok(bookDetailsDto));
+        given(bookService.getBookByIsbn("isbn11")).willReturn(bookDetailsDto);
 
         mockMvc
                 .perform(get("/book?isbn=" + bookDto.isbn()))
@@ -106,7 +104,7 @@ class BookControllerTest {
 
     @Test
     void doesBookExist() throws Exception {
-        given(bookService.doesBookExists(bookDto.isbn())).willReturn(ResponseEntity.ok(true));
+        given(bookService.doesBookExists(bookDto.isbn())).willReturn(true);
 
         mockMvc
                 .perform(get("/book/exists/" + bookDto.isbn()))
@@ -118,8 +116,7 @@ class BookControllerTest {
 
     @Test
     void updateBook() throws Exception {
-        given(bookService.updateBook(any(BookDto.class))).willReturn(
-                ResponseEntity.ok(bookDetailsDto));
+        given(bookService.updateBook(any(BookDto.class))).willReturn(bookDetailsDto);
 
         mockMvc
                 .perform(put("/book/update/{isbn}", bookDto.isbn())
@@ -133,9 +130,9 @@ class BookControllerTest {
 
     @Test
     void deleteBook() throws Exception {
-        given(bookService.deleteBook(bookDto.isbn())).willReturn(ResponseEntity
-                .ok()
-                .build());
+        doNothing()
+                .when(bookService)
+                .deleteBook(bookDto.isbn());
 
         mockMvc
                 .perform(delete(new URI("/book/delete/" + bookDto.isbn())))
