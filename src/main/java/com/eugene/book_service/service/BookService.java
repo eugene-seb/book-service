@@ -19,15 +19,17 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class BookService {
-
+public class BookService
+{
     private final BookEventProducer bookEventProducer;
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
 
     public BookService(
-            BookEventProducer bookEventProducer, BookRepository bookRepository,
-            CategoryRepository categoryRepository) {
+            BookEventProducer bookEventProducer,
+            BookRepository bookRepository,
+            CategoryRepository categoryRepository
+    ) {
         this.bookEventProducer = bookEventProducer;
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
@@ -40,91 +42,84 @@ public class BookService {
     @Transactional
     public BookDetailsDto createBook(BookDto bookDto) {
         Set<Category> categories = new HashSet<>(
-                categoryRepository.findAllById(bookDto.categoriesIds()));
+                this.categoryRepository.findAllById(bookDto.getCategoriesIds()));
 
-        if (categories.size() != bookDto
-                .categoriesIds()
-                .size()) {
+        if (categories.size() != bookDto.getCategoriesIds()
+                                        .size()) {
             throw new IllegalArgumentException("At least one category doesn't exist");
-        } else if (bookRepository.existsById(bookDto.isbn())) {
+        } else if (this.bookRepository.existsById(bookDto.getIsbn())) {
             throw new DuplicatedException(
-                    "Book with ISBN '" + bookDto.isbn() + "' " + "already exists.", null);
+                    "Book with ISBN '" + bookDto.getIsbn() + "' " + "already exists.", null);
         } else {
             Book book = bookDto.toBook();
             book.setCategories(categories);
 
-            return bookRepository
-                    .save(book)
-                    .toBookDetailsDto();
+            return this.bookRepository.save(book)
+                                      .toBookDetailsDto();
         }
     }
 
     @Transactional
     public List<BookDetailsDto> getAllBook() {
-        return bookRepository
-                .findAll()
-                .stream()
-                .map(Book::toBookDetailsDto)
-                .toList();
+        return this.bookRepository.findAll()
+                                  .stream()
+                                  .map(Book::toBookDetailsDto)
+                                  .toList();
     }
 
     @Transactional
     public List<BookDetailsDto> searchBooksByKey(BookDto bookDto) {
         Specification<Book> bookSpec = BookSpecification.filterBy(bookDto);
-        return bookRepository
-                .findAll(bookSpec)
-                .stream()
-                .map(Book::toBookDetailsDto)
-                .toList();
+        return this.bookRepository.findAll(bookSpec)
+                                  .stream()
+                                  .map(Book::toBookDetailsDto)
+                                  .toList();
     }
 
     @Transactional
     public BookDetailsDto getBookByIsbn(String isbn) {
-        return bookRepository
-                .findById(isbn)
-                .map(Book::toBookDetailsDto)
-                .orElseThrow(() -> new NotFoundException(getBookNotFoundMessage(isbn), null));
+        return this.bookRepository.findById(isbn)
+                                  .map(Book::toBookDetailsDto)
+                                  .orElseThrow(
+                                          () -> new NotFoundException(getBookNotFoundMessage(isbn),
+                                                                      null));
     }
 
     @Transactional
     public Boolean doesBookExists(String isbn) {
-        return bookRepository.existsById(isbn);
+        return this.bookRepository.existsById(isbn);
     }
 
     @Transactional
     public BookDetailsDto updateBook(BookDto bookDto) {
 
-        Book book = bookRepository
-                .findById(bookDto.isbn())
-                .orElseThrow(
-                        () -> new NotFoundException(getBookNotFoundMessage(bookDto.isbn()), null));
+        Book book = this.bookRepository.findById(bookDto.getIsbn())
+                                       .orElseThrow(() -> new NotFoundException(
+                                               getBookNotFoundMessage(bookDto.getIsbn()), null));
         Set<Category> categories = new HashSet<>(
-                categoryRepository.findAllById(bookDto.categoriesIds()));
+                this.categoryRepository.findAllById(bookDto.getCategoriesIds()));
 
-        if (categories.size() != bookDto
-                .categoriesIds()
-                .size()) {
+        if (categories.size() != bookDto.getCategoriesIds()
+                                        .size()) {
             throw new IllegalArgumentException("At least one category doesn't exist");
         } else {
-            book.setTitle(bookDto.title());
-            book.setDescription(bookDto.description());
-            book.setAuthor(bookDto.author());
-            book.setUrl(bookDto.url());
+            book.setTitle(bookDto.getTitle());
+            book.setDescription(bookDto.getDescription());
+            book.setAuthor(bookDto.getAuthor());
+            book.setUrl(bookDto.getUrl());
             book.setCategories(categories);
 
-            return bookRepository
-                    .save(book)
-                    .toBookDetailsDto();
+            return this.bookRepository.save(book)
+                                      .toBookDetailsDto();
         }
     }
 
     @Transactional
     public void deleteBook(String isbn) {
-        bookRepository
-                .findById(isbn)
-                .ifPresent(book -> {
-                    bookRepository.deleteById(isbn);
-                    bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
-                });
+        this.bookRepository.findById(isbn)
+                           .ifPresent(book -> {
+                               this.bookRepository.deleteById(isbn);
+                               this.bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
+                           });
     }
 }

@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class CategoryService {
-
+public class CategoryService
+{
     private final CategoryRepository categoryRepository;
 
     public CategoryService(CategoryRepository categoryRepository) {
@@ -25,44 +25,45 @@ public class CategoryService {
 
     @Transactional
     public Category createCategory(CategoryDto categoryDto) {
-        boolean exists = categoryRepository
-                .findByName(categoryDto.name())
-                .isPresent();
+        boolean exists = this.categoryRepository.findByName(categoryDto.getName())
+                                                .isPresent();
         if (exists) {
             throw new DuplicatedException(
-                    "Category '" + categoryDto.name() + "' " + "already exists.", null);
+                    "Category '" + categoryDto.getName() + "' " + "already exists.", null);
         } else {
-            Category category = new Category(categoryDto.name());
-            return categoryRepository.save(category);
+            Category category = new Category(categoryDto.getName());
+            return this.categoryRepository.save(category);
         }
     }
 
     @Transactional
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return this.categoryRepository.findAll();
     }
 
     @Transactional
     public Category getCategoryById(Long idCategory) {
 
-        return categoryRepository
-                .findById(idCategory)
-                .orElseThrow(
-                        () -> new NotFoundException(getCategoryNotFoundMessage(idCategory), null));
+        return this.categoryRepository.findById(idCategory)
+                                      .orElseThrow(() -> new NotFoundException(
+                                              getCategoryNotFoundMessage(idCategory), null));
     }
 
     @Transactional
-    public Category updateCategory(Long idCategory, CategoryDto categoryDto) {
-        Category categoryOld = categoryRepository
-                .findById(idCategory)
-                .orElseThrow(
-                        () -> new NotFoundException(getCategoryNotFoundMessage(idCategory), null));
-        categoryOld.setName(categoryDto.name());
-        return categoryRepository.save(categoryOld);
+    public Category updateCategory(
+            Long idCategory,
+            CategoryDto categoryDto
+    ) {
+        Category categoryOld = this.categoryRepository.findById(idCategory)
+                                                      .orElseThrow(() -> new NotFoundException(
+                                                              getCategoryNotFoundMessage(
+                                                                      idCategory), null));
+        categoryOld.setName(categoryDto.getName());
+        return this.categoryRepository.save(categoryOld);
     }
 
     @Transactional
     public void deleteCategory(Long idCategory) {
-        categoryRepository.deleteById(idCategory);
+        this.categoryRepository.deleteById(idCategory);
     }
 }

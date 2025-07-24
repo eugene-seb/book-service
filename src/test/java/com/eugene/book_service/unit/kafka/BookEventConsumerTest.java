@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
-class BookEventConsumerTest {
-
+class BookEventConsumerTest
+{
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Mock
     private BookRepository bookRepository;
@@ -47,16 +47,16 @@ class BookEventConsumerTest {
         book2.setReviewsIds(reviewIdsAfterDelete);
 
         UserDtoEvent userDtoEvent = new UserDtoEvent(KafkaEventType.USER_DELETED,
-                reviewIdsToDelete);
-        String json = objectMapper.writeValueAsString(userDtoEvent);
+                                                     reviewIdsToDelete);
+        String json = this.objectMapper.writeValueAsString(userDtoEvent);
 
-        given(bookRepository.findAll()).willReturn(List.of(book1, book2));
+        given(this.bookRepository.findAll()).willReturn(List.of(book1, book2));
 
-        bookEventConsumer.handleUserDeletedEvent(json);
+        this.bookEventConsumer.handleUserDeletedEvent(json);
 
         book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(bookRepository, times(1)).save(book1);
-        verify(bookRepository, times(1)).save(book2);
+        verify(this.bookRepository, times(1)).save(book1);
+        verify(this.bookRepository, times(1)).save(book2);
     }
 
     @Test
@@ -70,15 +70,16 @@ class BookEventConsumerTest {
         book1.setReviewsIds(reviewIds);
 
         ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_CREATED, "user1",
-                "isbn1", reviewIdsToDelete);
-        String json = objectMapper.writeValueAsString(reviewDtoEvent);
+                                                           "isbn1", reviewIdsToDelete);
+        String json = this.objectMapper.writeValueAsString(reviewDtoEvent);
 
-        given(bookRepository.findById(reviewDtoEvent.getIsbn())).willReturn(Optional.of(book1));
+        given(this.bookRepository.findById(reviewDtoEvent.getIsbn())).willReturn(
+                Optional.of(book1));
 
-        bookEventConsumer.handleReviewsCreatedEvent(json);
+        this.bookEventConsumer.handleReviewsCreatedEvent(json);
 
         book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(bookRepository, times(1)).save(book1);
+        verify(this.bookRepository, times(1)).save(book1);
     }
 
     @Test
@@ -94,16 +95,16 @@ class BookEventConsumerTest {
         book2.setReviewsIds(reviewIdsAfterDelete);
 
         ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_DELETED, "user1",
-                "isbn1", reviewIdsToDelete);
-        String json = objectMapper.writeValueAsString(reviewDtoEvent);
+                                                           "isbn1", reviewIdsToDelete);
+        String json = this.objectMapper.writeValueAsString(reviewDtoEvent);
 
-        given(bookRepository.findAll()).willReturn(List.of(book1, book2));
+        given(this.bookRepository.findAll()).willReturn(List.of(book1, book2));
 
-        bookEventConsumer.handleReviewsDeletedEvent(json);
+        this.bookEventConsumer.handleReviewsDeletedEvent(json);
 
         book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(bookRepository, times(1)).save(book1);
-        verify(bookRepository, times(1)).save(book2);
+        verify(this.bookRepository, times(1)).save(book1);
+        verify(this.bookRepository, times(1)).save(book2);
         assertThat(book1.getReviewsIds()).isEqualTo(reviewIdsAfterDelete);
     }
 }

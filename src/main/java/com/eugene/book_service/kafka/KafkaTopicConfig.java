@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class KafkaTopicConfig {
-
+public class KafkaTopicConfig
+{
     @Bean
     public NewTopic userTopic() {
         return new NewTopic("user.events", 1, (short) 1);

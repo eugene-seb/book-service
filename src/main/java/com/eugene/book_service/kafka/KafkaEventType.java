@@ -2,9 +2,10 @@ package com.eugene.book_service.kafka;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum KafkaEventType {
+public enum KafkaEventType
+{
     USER_DELETED("USER_DELETED"), BOOK_DELETED("BOOK_DELETED"), REVIEWS_CREATED(
-            "REVIEWS_CREATED"), REVIEWS_DELETED("REVIEWS_DELETED");
+        "REVIEWS_CREATED"), REVIEWS_DELETED("REVIEWS_DELETED");
 
     private final String value;
 

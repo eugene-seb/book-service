@@ -8,8 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BookSpecification {
-
+public class BookSpecification
+{
     private BookSpecification() {
         throw new IllegalStateException("Utility class");
     }
@@ -18,15 +18,15 @@ public class BookSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (bookDto.isbn() != null)
-                predicates.add(criteriaBuilder.like(root.get("isbn"), "%" + bookDto.isbn() + "%"));
-            if (bookDto.title() != null) predicates.add(
-                    criteriaBuilder.like(root.get("title"), "%" + bookDto.title() + "%"));
-            if (bookDto.description() != null) predicates.add(
+            if (bookDto.getIsbn() != null) predicates.add(
+                    criteriaBuilder.like(root.get("isbn"), "%" + bookDto.getTitle() + "%"));
+            if (bookDto.getTitle() != null) predicates.add(
+                    criteriaBuilder.like(root.get("title"), "%" + bookDto.getTitle() + "%"));
+            if (bookDto.getDescription() != null) predicates.add(
                     criteriaBuilder.like(root.get("description"),
-                            "%" + bookDto.description() + "%"));
-            if (bookDto.author() != null) predicates.add(
-                    criteriaBuilder.like(root.get("author"), "%" + bookDto.author() + "%"));
+                                         "%" + bookDto.getDescription() + "%"));
+            if (bookDto.getAuthor() != null) predicates.add(
+                    criteriaBuilder.like(root.get("author"), "%" + bookDto.getAuthor() + "%"));
 
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };

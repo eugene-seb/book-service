@@ -6,11 +6,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class BookServiceApplicationTests {
-
+class BookServiceApplicationTests
+{
     @Test
     void contextLoads() {
         // Nothing to do for now
     }
-
 }
