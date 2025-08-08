@@ -13,21 +13,27 @@ public class BookSpecification
     private BookSpecification() {
         throw new IllegalStateException("Utility class");
     }
-
+    
     public static Specification<Book> filterBy(BookDto bookDto) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            if (bookDto.getIsbn() != null) predicates.add(
-                    criteriaBuilder.like(root.get("isbn"), "%" + bookDto.getTitle() + "%"));
-            if (bookDto.getTitle() != null) predicates.add(
-                    criteriaBuilder.like(root.get("title"), "%" + bookDto.getTitle() + "%"));
-            if (bookDto.getDescription() != null) predicates.add(
-                    criteriaBuilder.like(root.get("description"),
-                                         "%" + bookDto.getDescription() + "%"));
-            if (bookDto.getAuthor() != null) predicates.add(
-                    criteriaBuilder.like(root.get("author"), "%" + bookDto.getAuthor() + "%"));
-
+            
+            if (bookDto.getIsbn() != null) predicates.add(criteriaBuilder.like(root.get("isbn"),
+                                                                               "%" +
+                                                                               bookDto.getTitle() +
+                                                                               "%"));
+            if (bookDto.getTitle() != null) predicates.add(criteriaBuilder.like(root.get("title"),
+                                                                                "%" +
+                                                                                bookDto.getTitle() +
+                                                                                "%"));
+            if (bookDto.getDescription() != null)
+                predicates.add(criteriaBuilder.like(root.get("description"),
+                                                    "%" + bookDto.getDescription() + "%"));
+            if (bookDto.getAuthor() != null) predicates.add(criteriaBuilder.like(root.get("author"),
+                                                                                 "%" +
+                                                                                 bookDto.getAuthor() +
+                                                                                 "%"));
+            
             return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
