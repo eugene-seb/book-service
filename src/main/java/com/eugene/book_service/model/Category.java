@@ -13,18 +13,19 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class Category {
+public class Category
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(unique = true, nullable = false)
     private String name;
-
+    
     @ManyToMany(mappedBy = "categories")
     @JsonIgnore  // Prevents infinite recursion when getting the category
     private Set<Book> books;
-
+    
     public Category(String name) {
         this.name = name;
     }

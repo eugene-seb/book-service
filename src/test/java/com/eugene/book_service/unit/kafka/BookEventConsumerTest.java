@@ -29,82 +29,94 @@ import static org.mockito.Mockito.verify;
 class BookEventConsumerTest
 {
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Set<Long> reviewIdsToDelete;
+    private final Set<Long> reviewIdsAfterDelete;
+    private final Book book1;
+    private final Book book2;
+    
     @Mock
     private BookRepository bookRepository;
     @InjectMocks
     private BookEventConsumer bookEventConsumer;
-
+    
+    public BookEventConsumerTest() {
+        Set<Long> reviewIds = Set.of(1L,
+                                     2L,
+                                     3L);
+        this.reviewIdsToDelete = Set.of(3L);
+        this.reviewIdsAfterDelete = Set.of(1L,
+                                           2L);
+        
+        this.book1 = new Book("isbn1",
+                              "title1",
+                              "description1",
+                              "author1",
+                              "url1");
+        this.book1.setReviewsIds(reviewIds);
+        this.book2 = new Book("isbn2",
+                              "title2",
+                              "description2",
+                              "author2",
+                              "url2");
+        this.book2.setReviewsIds(this.reviewIdsAfterDelete);
+    }
+    
     @Test
     void handleUserDeletedEvent() throws JsonProcessingException {
-
-        Set<Long> reviewIds = Set.of(1L, 2L, 3L);
-        Set<Long> reviewIdsToDelete = Set.of(3L);
-        Set<Long> reviewIdsAfterDelete = Set.of(1L, 2L);
-
-        Book book1 = new Book("isbn1", "title1", "description1", "author1", "url1");
-        book1.setReviewsIds(reviewIds);
-        Book book2 = new Book("isbn2", "title2", "description2", "author2", "url2");
-        book2.setReviewsIds(reviewIdsAfterDelete);
-
+        
         UserDtoEvent userDtoEvent = new UserDtoEvent(KafkaEventType.USER_DELETED,
-                                                     reviewIdsToDelete);
+                                                     this.reviewIdsToDelete);
         String json = this.objectMapper.writeValueAsString(userDtoEvent);
-
-        given(this.bookRepository.findAll()).willReturn(List.of(book1, book2));
-
+        
+        given(this.bookRepository.findAll()).willReturn(List.of(this.book1,
+                                                                this.book2));
+        
         this.bookEventConsumer.handleUserDeletedEvent(json);
-
-        book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(this.bookRepository, times(1)).save(book1);
-        verify(this.bookRepository, times(1)).save(book2);
+        
+        this.book1.setReviewsIds(this.reviewIdsAfterDelete);
+        verify(this.bookRepository,
+               times(1)).save(this.book1);
+        verify(this.bookRepository,
+               times(1)).save(this.book2);
     }
-
+    
     @Test
     void handleReviewsCreatedEvent() throws JsonProcessingException {
-
-        Set<Long> reviewIds = Set.of(1L, 2L, 3L);
-        Set<Long> reviewIdsToDelete = Set.of(3L);
-        Set<Long> reviewIdsAfterDelete = Set.of(1L, 2L);
-
-        Book book1 = new Book("isbn1", "title1", "description1", "author1", "url1");
-        book1.setReviewsIds(reviewIds);
-
-        ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_CREATED, "user1",
-                                                           "isbn1", reviewIdsToDelete);
+        
+        ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_CREATED,
+                                                           "user1",
+                                                           "isbn1",
+                                                           this.reviewIdsToDelete);
         String json = this.objectMapper.writeValueAsString(reviewDtoEvent);
-
-        given(this.bookRepository.findById(reviewDtoEvent.getIsbn())).willReturn(
-                Optional.of(book1));
-
+        
+        given(this.bookRepository.findById(reviewDtoEvent.getIsbn())).willReturn(Optional.of(this.book1));
+        
         this.bookEventConsumer.handleReviewsCreatedEvent(json);
-
-        book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(this.bookRepository, times(1)).save(book1);
+        
+        this.book1.setReviewsIds(this.reviewIdsAfterDelete);
+        verify(this.bookRepository,
+               times(1)).save(this.book1);
     }
-
+    
     @Test
     void handleReviewsDeletedEvent() throws JsonProcessingException {
-
-        Set<Long> reviewIds = Set.of(1L, 2L, 3L);
-        Set<Long> reviewIdsToDelete = Set.of(3L);
-        Set<Long> reviewIdsAfterDelete = Set.of(1L, 2L);
-
-        Book book1 = new Book("isbn1", "title1", "description1", "author1", "url1");
-        book1.setReviewsIds(reviewIds);
-        Book book2 = new Book("isbn2", "title2", "description2", "author2", "url2");
-        book2.setReviewsIds(reviewIdsAfterDelete);
-
-        ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_DELETED, "user1",
-                                                           "isbn1", reviewIdsToDelete);
+        
+        ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_DELETED,
+                                                           "user1",
+                                                           "isbn1",
+                                                           this.reviewIdsToDelete);
         String json = this.objectMapper.writeValueAsString(reviewDtoEvent);
-
-        given(this.bookRepository.findAll()).willReturn(List.of(book1, book2));
-
+        
+        given(this.bookRepository.findAll()).willReturn(List.of(this.book1,
+                                                                this.book2));
+        
         this.bookEventConsumer.handleReviewsDeletedEvent(json);
-
-        book1.setReviewsIds(reviewIdsAfterDelete);
-        verify(this.bookRepository, times(1)).save(book1);
-        verify(this.bookRepository, times(1)).save(book2);
-        assertThat(book1.getReviewsIds()).isEqualTo(reviewIdsAfterDelete);
+        
+        this.book1.setReviewsIds(this.reviewIdsAfterDelete);
+        verify(this.bookRepository,
+               times(1)).save(this.book1);
+        verify(this.bookRepository,
+               times(1)).save(this.book2);
+        assertThat(this.book1.getReviewsIds()).isEqualTo(this.reviewIdsAfterDelete);
     }
 }
