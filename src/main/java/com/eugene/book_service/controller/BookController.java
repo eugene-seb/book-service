@@ -3,8 +3,11 @@ package com.eugene.book_service.controller;
 import com.eugene.book_service.dto.BookDetailsDto;
 import com.eugene.book_service.dto.BookDto;
 import com.eugene.book_service.service.BookService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -12,55 +15,68 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
-@RequestMapping("book")
+@RequestMapping("/api/book")
+@RequiredArgsConstructor
 public class BookController
 {
     private final BookService bookService;
-
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
-
-    @PostMapping("create_book")
+    
+    @Operation(summary = "Create a new book.")
+    @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<BookDetailsDto> createBook(@Valid @RequestBody BookDto bookDto)
             throws URISyntaxException {
-
-        return ResponseEntity.created(new URI("/book?isbn=" + bookDto.getIsbn()))
-                             .body(this.bookService.createBook(bookDto));
+        
+        return ResponseEntity
+                .created(new URI("/api/book/" + bookDto.getIsbn()))
+                .body(this.bookService.createBook(bookDto));
     }
-
-    @GetMapping("all_books")
+    
+    @Operation(summary = "Get all books.")
+    @GetMapping("/all")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<BookDetailsDto>> getAllBook() {
         return ResponseEntity.ok(this.bookService.getAllBook());
     }
-
-    @GetMapping
-    public ResponseEntity<BookDetailsDto> getBookByIsbn(@RequestParam String isbn) {
+    
+    @Operation(summary = "Get a book ISBN.")
+    @GetMapping("/{isbn}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<BookDetailsDto> getBookByIsbn(@PathVariable String isbn) {
         return ResponseEntity.ok(this.bookService.getBookByIsbn(isbn));
     }
-
-    @GetMapping("search")
+    
+    @Operation(summary = "Search book by ISBN.")
+    @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@Valid @RequestBody BookDto bookDto) {
         return ResponseEntity.ok(this.bookService.searchBooksByKey(bookDto));
     }
-
-    @GetMapping("exists/{isbn}")
+    
+    @Operation(summary = "Check the existence of a book.")
+    @GetMapping("/exists/{isbn}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Boolean> doesBookExist(@PathVariable String isbn) {
         return ResponseEntity.ok(this.bookService.doesBookExists(isbn));
     }
-
+    
+    @Operation(summary = "Update a book.")
     @PutMapping("/update/{isbn}")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<BookDetailsDto> updateBook(
             @PathVariable String isbn,
             @Valid @RequestBody BookDto bookDto
     ) {
         return ResponseEntity.ok(this.bookService.updateBook(bookDto));
     }
-
-    @DeleteMapping("delete/{isbn}")
+    
+    @Operation(summary = "Delete a book.")
+    @DeleteMapping("/delete/{isbn}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable String isbn) {
         this.bookService.deleteBook(isbn);
-        return ResponseEntity.ok()
-                             .build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }
