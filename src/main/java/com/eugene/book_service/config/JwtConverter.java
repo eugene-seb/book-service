@@ -79,7 +79,7 @@ public class JwtConverter
         return clientRoles
                 .stream()
                 .filter(Objects::nonNull)
-                .filter(r -> r instanceof String)
+                .filter(String.class::isInstance)
                 .map(r -> (String) r)
                 .collect(Collectors.toSet());
     }
