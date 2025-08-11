@@ -62,7 +62,7 @@ class BookEventConsumerTest
     }
     
     @Test
-    void handleUserDeletedEvent() throws JsonProcessingException {
+    void handleUserEvent_userDeleted() throws JsonProcessingException {
         
         UserDtoEvent userDtoEvent = new UserDtoEvent(KafkaEventType.USER_DELETED,
                                                      this.reviewIdsToDelete);
@@ -70,8 +70,7 @@ class BookEventConsumerTest
         
         given(this.bookRepository.findAll()).willReturn(List.of(this.book1,
                                                                 this.book2));
-        
-        this.bookEventConsumer.handleUserDeletedEvent(json);
+        this.bookEventConsumer.handleUserEvents(json);
         
         this.book1.setReviewsIds(this.reviewIdsAfterDelete);
         verify(this.bookRepository,
@@ -81,7 +80,7 @@ class BookEventConsumerTest
     }
     
     @Test
-    void handleReviewsCreatedEvent() throws JsonProcessingException {
+    void handleReviewsEvent_reviewCreated() throws JsonProcessingException {
         
         ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_CREATED,
                                                            "user1",
@@ -91,7 +90,7 @@ class BookEventConsumerTest
         
         given(this.bookRepository.findById(reviewDtoEvent.getIsbn())).willReturn(Optional.of(this.book1));
         
-        this.bookEventConsumer.handleReviewsCreatedEvent(json);
+        this.bookEventConsumer.handleReviewsEvents(json);
         
         this.book1.setReviewsIds(this.reviewIdsAfterDelete);
         verify(this.bookRepository,
@@ -99,7 +98,7 @@ class BookEventConsumerTest
     }
     
     @Test
-    void handleReviewsDeletedEvent() throws JsonProcessingException {
+    void handleReviewsEvent_reviewDeleted() throws JsonProcessingException {
         
         ReviewDtoEvent reviewDtoEvent = new ReviewDtoEvent(KafkaEventType.REVIEWS_DELETED,
                                                            "user1",
@@ -110,7 +109,7 @@ class BookEventConsumerTest
         given(this.bookRepository.findAll()).willReturn(List.of(this.book1,
                                                                 this.book2));
         
-        this.bookEventConsumer.handleReviewsDeletedEvent(json);
+        this.bookEventConsumer.handleReviewsEvents(json);
         
         this.book1.setReviewsIds(this.reviewIdsAfterDelete);
         verify(this.bookRepository,
