@@ -10,6 +10,7 @@ import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.BookRepository;
 import com.eugene.book_service.repository.CategoryRepository;
 import com.eugene.book_service.repository.specification.BookSpecification;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class BookService
     }
     
     @Transactional
-    public BookDetailsDto createBook(BookDto bookDto) {
+    public BookDetailsDto createBook(@Valid BookDto bookDto) {
         Set<Category> categories = new HashSet<>(this.categoryRepository.findAllById(bookDto.getCategoriesIds()));
         
         if (categories.size() != bookDto
@@ -63,7 +64,7 @@ public class BookService
     }
     
     @Transactional(readOnly = true)
-    public List<BookDetailsDto> searchBooksByKey(BookDto bookDto) {
+    public List<BookDetailsDto> searchBooksByKey(@Valid BookDto bookDto) {
         Specification<Book> bookSpec = BookSpecification.filterBy(bookDto);
         return this.bookRepository
                 .findAll(bookSpec)
@@ -87,7 +88,7 @@ public class BookService
     }
     
     @Transactional
-    public BookDetailsDto updateBook(BookDto bookDto) {
+    public BookDetailsDto updateBook(@Valid BookDto bookDto) {
         
         Book book = this.bookRepository
                 .findById(bookDto.getIsbn())
