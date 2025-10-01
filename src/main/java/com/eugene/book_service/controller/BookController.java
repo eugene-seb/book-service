@@ -4,6 +4,7 @@ import com.eugene.book_service.dto.BookDetailsDto;
 import com.eugene.book_service.dto.BookDto;
 import com.eugene.book_service.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class BookController
     @Operation(summary = "Create a new book.")
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
-    public ResponseEntity<BookDetailsDto> createBook(@RequestBody BookDto bookDto)
+    public ResponseEntity<BookDetailsDto> createBook(@Valid @RequestBody BookDto bookDto)
             throws URISyntaxException {
         
         return ResponseEntity
@@ -48,7 +49,7 @@ public class BookController
     @Operation(summary = "Search book by ISBN.")
     @GetMapping("/search")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@RequestBody BookDto bookDto) {
+    public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@Valid @RequestBody BookDto bookDto) {
         return ResponseEntity.ok(this.bookService.searchBooksByKey(bookDto));
     }
     
@@ -64,7 +65,7 @@ public class BookController
     @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<BookDetailsDto> updateBook(
             @PathVariable String isbn,
-            @RequestBody BookDto bookDto
+            @Valid @RequestBody BookDto bookDto
     ) {
         return ResponseEntity.ok(this.bookService.updateBook(bookDto));
     }

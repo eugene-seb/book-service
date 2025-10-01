@@ -4,6 +4,7 @@ import com.eugene.book_service.dto.CategoryDto;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class CategoryController
     @Operation(summary = "Create a new category of book.")
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
-    public ResponseEntity<Category> createCategory(@RequestBody CategoryDto categoryDto)
+    public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryDto categoryDto)
             throws URISyntaxException {
         Category category = this.categoryService.createCategory(categoryDto);
         return ResponseEntity
@@ -50,7 +51,7 @@ public class CategoryController
     @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long idCategory,
-            @RequestBody CategoryDto categoryDto
+            @Valid @RequestBody CategoryDto categoryDto
     ) {
         return ResponseEntity.ok(this.categoryService.updateCategory(idCategory,
                                                                      categoryDto));

@@ -5,7 +5,6 @@ import com.eugene.book_service.exception.DuplicatedException;
 import com.eugene.book_service.exception.NotFoundException;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.CategoryRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +22,7 @@ public class CategoryService
     }
     
     @Transactional
-    public Category createCategory(@Valid CategoryDto categoryDto) {
+    public Category createCategory(CategoryDto categoryDto) {
         if (this.categoryRepository
                 .findByName(categoryDto.getName())
                 .isPresent()) {
@@ -53,7 +52,7 @@ public class CategoryService
     @Transactional
     public Category updateCategory(
             Long idCategory,
-            @Valid CategoryDto categoryDto
+            CategoryDto categoryDto
     ) {
         Category category = this.categoryRepository
                 .findById(idCategory)
