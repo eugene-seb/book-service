@@ -47,9 +47,9 @@ public class BookController
     }
     
     @Operation(summary = "Search book by ISBN.")
-    @GetMapping("/search")
+    @PostMapping("/search")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@Valid @RequestBody BookDto bookDto) {
+    public ResponseEntity<List<BookDetailsDto>> searchBookByKey(@RequestBody BookDto bookDto) {
         return ResponseEntity.ok(this.bookService.searchBooksByKey(bookDto));
     }
     
@@ -67,7 +67,8 @@ public class BookController
             @PathVariable String isbn,
             @Valid @RequestBody BookDto bookDto
     ) {
-        return ResponseEntity.ok(this.bookService.updateBook(bookDto));
+        return ResponseEntity.ok(this.bookService.updateBook(isbn,
+                                                             bookDto));
     }
     
     @Operation(summary = "Delete a book.")

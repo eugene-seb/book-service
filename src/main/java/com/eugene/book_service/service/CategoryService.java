@@ -5,6 +5,7 @@ import com.eugene.book_service.exception.DuplicatedException;
 import com.eugene.book_service.exception.NotFoundException;
 import com.eugene.book_service.model.Category;
 import com.eugene.book_service.repository.CategoryRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class CategoryService
     }
     
     @Transactional
-    public Category createCategory(CategoryDto categoryDto) {
+    public Category createCategory(@Valid CategoryDto categoryDto) {
         if (this.categoryRepository
                 .findByName(categoryDto.getName())
                 .isPresent()) {
@@ -52,18 +53,31 @@ public class CategoryService
     @Transactional
     public Category updateCategory(
             Long idCategory,
-            CategoryDto categoryDto
+            @Valid CategoryDto categoryDto
     ) {
         Category category = this.categoryRepository
                 .findById(idCategory)
                 .orElseThrow(() -> new NotFoundException(getCategoryNotFoundMessage(idCategory),
                                                          null));
+        
+        this.categoryRepository
+                .findByName(categoryDto.getName())
+                .ifPresent(existing -> {
+                    throw new DuplicatedException(
+                            "Category '" + categoryDto.getName() + "' already exists.",
+                            null);
+                });
+        
         category.setName(categoryDto.getName());
         return this.categoryRepository.save(category);
     }
     
     @Transactional
     public void deleteCategory(Long idCategory) {
-        this.categoryRepository.deleteById(idCategory);
+        Category category = this.categoryRepository
+                .findById(idCategory)
+                .orElseThrow(() -> new NotFoundException(getCategoryNotFoundMessage(idCategory),
+                                                         null));
+        this.categoryRepository.delete(category);
     }
 }
