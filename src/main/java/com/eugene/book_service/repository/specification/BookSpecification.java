@@ -14,35 +14,27 @@ public class BookSpecification
         return Specification
                 .where(filterByIsbn(bookDto.getIsbn()))
                 .or(filterByTitle(bookDto.getTitle()))
-                .or(filterByDescription(bookDto.getDescription()))
                 .or(filterByAuthor(bookDto.getAuthor()));
     }
     
     public static Specification<Book> filterByIsbn(String isbn) {
-        return ((root, query, criteriaBuilder) -> isbn != null
+        return ((root, query, criteriaBuilder) -> (isbn != null && !isbn.isBlank())
                 ? criteriaBuilder.like(root.get("isbn"),
                                        "%" + isbn + "%")
-                : criteriaBuilder.conjunction());
+                : criteriaBuilder.disjunction());
     }
     
     public static Specification<Book> filterByTitle(String title) {
-        return ((root, query, criteriaBuilder) -> title != null
+        return ((root, query, criteriaBuilder) -> (title != null && !title.isBlank())
                 ? criteriaBuilder.like(root.get("title"),
                                        "%" + title + "%")
-                : criteriaBuilder.conjunction());
-    }
-    
-    public static Specification<Book> filterByDescription(String description) {
-        return ((root, query, criteriaBuilder) -> description != null
-                ? criteriaBuilder.like(root.get("description"),
-                                       "%" + description + "%")
-                : criteriaBuilder.conjunction());
+                : criteriaBuilder.disjunction());
     }
     
     public static Specification<Book> filterByAuthor(String author) {
-        return ((root, query, criteriaBuilder) -> author != null
+        return ((root, query, criteriaBuilder) -> (author != null && !author.isBlank())
                 ? criteriaBuilder.like(root.get("author"),
                                        "%" + author + "%")
-                : criteriaBuilder.conjunction());
+                : criteriaBuilder.disjunction());
     }
 }

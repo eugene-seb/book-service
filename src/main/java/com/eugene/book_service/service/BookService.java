@@ -87,10 +87,13 @@ public class BookService
     }
     
     @Transactional
-    public BookDetailsDto updateBook(BookDto bookDto) {
+    public BookDetailsDto updateBook(
+            String isbn,
+            BookDto bookDto
+    ) {
         
         Book book = this.bookRepository
-                .findById(bookDto.getIsbn())
+                .findById(isbn)
                 .orElseThrow(() -> new NotFoundException(getBookNotFoundMessage(bookDto.getIsbn()),
                                                          null));
         Set<Category> categories = new HashSet<>(this.categoryRepository.findAllById(bookDto.getCategoriesIds()));
@@ -114,11 +117,12 @@ public class BookService
     
     @Transactional
     public void deleteBook(String isbn) {
-        this.bookRepository
+        Book book = this.bookRepository
                 .findById(isbn)
-                .ifPresent(book -> {
-                    this.bookRepository.deleteById(isbn);
-                    this.bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
-                });
+                .orElseThrow(() -> new NotFoundException(getBookNotFoundMessage(isbn),
+                                                         null));
+        
+        this.bookRepository.delete(book);
+        this.bookEventProducer.sendBookDeletedEvent(book.getReviewsIds());
     }
 }
